@@ -358,7 +358,7 @@
     function renderVerified() {
       // Show the verification code prominently with copy-friendly design
       const codeDisplay = hasValidCode ? displayCode : "missing-code";
-      const warningMsg = !hasValidCode ? '<div class="text-muted" style="margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> Note: No verification code found in URL. Contact server admin.</div>' : '';
+      const warningMsg = !hasValidCode ? '<div class="text-muted" style="margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> Note: Now You have to Open Discord App</div>' : '';
       
       return `
         <div style="text-align: center;">
@@ -382,12 +382,12 @@
             ${warningMsg}
             <hr style="margin: 1rem 0 0.5rem;">
             <div class="text-muted" style="font-size: 0.75rem;">
-              <i class="fas fa-clock"></i> Verification token expires after one use
+              <i class="fas fa-clock"></i> Verification token expires after 10 minutes, if you not went back to Discord.
             </div>
-          </div>
+          </div> <!--
           <button class="discord-btn" id="resetVerificationBtn" style="background: #4e5058; box-shadow: none; margin-top: 0.5rem;">
             <i class="fas fa-redo-alt"></i> Verify another account
-          </button>
+          </button> -->
         </div>
       `;
     }
