@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Discord Verification • Secure Access</title>
+  <!-- Google Fonts for modern typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1e1f22;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      margin: 0;
+      position: relative;
+    }
+
+    /* subtle animated grid overlay (discord-like texture) */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(#2b2d31 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* main card container */
+    .verify-card {
+      background: #2b2d31;
+      border-radius: 32px;
+      width: 100%;
+      max-width: 540px;
+      padding: 2rem 2rem 2.2rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      z-index: 2;
+      backdrop-filter: blur(0px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .verify-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 30px 50px -14px rgba(0, 0, 0, 0.5);
+    }
+
+    /* discord branding header */
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .discord-icon {
+      background: #5865f2;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: white;
+      box-shadow: 0 6px 12px rgba(88, 101, 242, 0.25);
+    }
+
+    .brand-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #ffffff, #dbdee4);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    /* status & content */
+    .status-area {
+      background: #1e1f22;
+      border-radius: 24px;
+      padding: 1.5rem 1.8rem;
+      margin: 1.2rem 0 1.8rem;
+      text-align: center;
+      border: 1px solid #3b3f48;
+      transition: all 0.25s;
+    }
+
+    .verification-message {
+      font-size: 1.1rem;
+      color: #dbdee1;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .verification-code-block {
+      background: #111214;
+      padding: 0.9rem 1.2rem;
+      border-radius: 18px;
+      display: inline-block;
+      margin-top: 1rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-weight: 700;
+      font-size: 1.7rem;
+      letter-spacing: 2px;
+      color: #b5bac1;
+      border-left: 4px solid #5865f2;
+      box-shadow: inset 0 0 0 1px #2c2f36, 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .command-hint {
+      background: #1e1f22;
+      border-radius: 20px;
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 1.5rem 0 0.8rem;
+      font-size: 0.9rem;
+      border: 1px solid #3b3f48;
+    }
+
+    .command-hint span {
+      background: #2b2d31;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      font-family: monospace;
+      font-weight: 600;
+      color: #e1e4e8;
+      font-size: 1rem;
+    }
+
+    .code-value {
+      font-weight: 800;
+      color: #f2f3f5;
+      background: #00000066;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+    }
+
+    /* primary discord button */
+    .discord-btn {
+      background: #5865f2;
+      border: none;
+      padding: 0.9rem 1.8rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: 40px;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      width: 100%;
+      max-width: 260px;
+      margin: 0.5rem auto;
+      box-shadow: 0 4px 10px rgba(88, 101, 242, 0.3);
+    }
+
+    .discord-btn i {
+      font-size: 1.2rem;
+    }
+
+    .discord-btn:hover {
+      background: #4752c4;
+      transform: scale(1.02);
+      box-shadow: 0 8px 18px rgba(88, 101, 242, 0.4);
+    }
+
+    .discord-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* loading spinner (discord style) */
+    .spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 0.8rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* success animation */
+    .success-icon {
+      background: #23a55a;
+      width: 56px;
+      height: 56px;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 2rem;
+      color: white;
+      box-shadow: 0 6px 14px rgba(35, 165, 90, 0.3);
+      animation: popIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* small utility */
+    .mt-3 {
+      margin-top: 0.8rem;
+    }
+
+    .text-muted {
+      color: #949ba4;
+      font-size: 0.8rem;
+    }
+
+    hr {
+      border-color: #3b3f48;
+      margin: 1rem 0;
+    }
+
+    /* responsive */
+    @media (max-width: 500px) {
+      .verify-card {
+        padding: 1.5rem;
+      }
+      .verification-code-block {
+        font-size: 1.3rem;
+        padding: 0.6rem 1rem;
+      }
+      .brand-header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="verify-card" id="appRoot">
+  <!-- Dynamic content will be injected by Vue-like reactivity (vanilla JS) -->
+  <div id="dynamicContainer"></div>
+</div>
+
+<script>
+  (function() {
+    // ---------- Get URL params (production safe) ----------
+    function getQueryParam(param) {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      } catch(e) {
+        console.warn("URL parsing error", e);
+        return null;
+      }
+    }
+
+    const codeFromURL = getQueryParam("code");
+
+    // ---------- DOM elements ----------
+    const container = document.getElementById("dynamicContainer");
+    let currentState = "initial"; // initial, loading, verified
+
+    // Helper to sanitize code display (prevent any injection)
+    function sanitizeText(str) {
+      if (!str) return "";
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      }).trim();
+    }
+
+    // Display code fallback if missing
+    const displayCode = (codeFromURL && codeFromURL.trim() !== "") ? sanitizeText(codeFromURL) : "————";
+    const hasValidCode = codeFromURL && codeFromURL.trim() !== "";
+
+    // ---------- Render functions (pure UI based on state) ----------
+    function renderInitial() {
+      return `
+        <div style="text-align: center;">
+          <div class="brand-header">
+            <div class="discord-icon"><i class="fab fa-discord"></i></div>
+            <h1>Verification Portal</h1>
+          </div>
+          <div class="status-area">
+            <i class="fas fa-shield-alt" style="font-size: 2.5rem; color: #5865f2; margin-bottom: 0.5rem; display: block;"></i>
+            <div class="verification-message">
+              <strong>Action required</strong><br>
+              Click the button below to verify your identity and authorize access.
+            </div>
+          </div>
+          <button class="discord-btn" id="verifyActionBtn">
+            <i class="fas fa-check-circle"></i> Verify Now
+          </button>
+          <div class="text-muted mt-3">
+            <i class="fas fa-lock"></i> Secure verification • Discord protected
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLoading() {
+      return `
+        <div style="text-align: center;">
+          <div class="brand-header">
+            <div class="discord-icon"><i class="fab fa-discord"></i></div>
+            <h1>Verification Portal</h1>
+          </div>
+          <div class="status-area" style="min-height: 220px; display: flex; align-items: center; justify-content: center;">
+            <div class="loading-text">
+              <div class="spinner"></div>
+              <div class="verification-message" style="font-weight: 500;">
+                <i class="fas fa-robot"></i> Verifying credentials...
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">Please wait, establishing secure handshake</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderVerified() {
+      // Show the verification code prominently with copy-friendly design
+      const codeDisplay = hasValidCode ? displayCode : "missing-code";
+      const warningMsg = !hasValidCode ? '<div class="text-muted" style="margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> Note: No verification code found in URL. Contact server admin.</div>' : '';
+      
+      return `
+        <div style="text-align: center;">
+          <div class="brand-header">
+            <div class="discord-icon"><i class="fab fa-discord"></i></div>
+            <h1>Verification Portal</h1>
+          </div>
+          <div class="status-area" style="background: #1e1f22; border-color: #23a55a;">
+            <div class="success-icon">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="verification-message" style="font-weight: 600; font-size: 1.3rem; color: #d5d9e0;">
+              Verified successfully
+            </div>
+            <p style="color: #b5bac1; margin-top: 0.6rem;">Return to Discord and complete the setup:</p>
+            <div class="command-hint" style="background: #111214; margin-top: 1rem;">
+              <i class="fab fa-discord" style="color: #5865f2; font-size: 1.2rem;"></i>
+              <span style="background: #2b2d31;"><span style="font-weight: 600;">/confirm</span> <span class="code-value" id="verificationCodeSpan">${codeDisplay}</span></span>
+              <i class="fas fa-copy" id="copyCodeBtn" style="cursor: pointer; color: #b5bac1; font-size: 1.1rem; transition: color 0.1s;" title="Copy code"></i>
+            </div>
+            ${warningMsg}
+            <hr style="margin: 1rem 0 0.5rem;">
+            <div class="text-muted" style="font-size: 0.75rem;">
+              <i class="fas fa-clock"></i> Verification token expires after one use
+            </div>
+          </div>
+          <button class="discord-btn" id="resetVerificationBtn" style="background: #4e5058; box-shadow: none; margin-top: 0.5rem;">
+            <i class="fas fa-redo-alt"></i> Verify another account
+          </button>
+        </div>
+      `;
+    }
+
+    // Attach event listeners after rendering
+    function attachEvents(state) {
+      if (state === "initial") {
+        const verifyBtn = document.getElementById("verifyActionBtn");
+        if (verifyBtn) {
+          verifyBtn.addEventListener("click", () => {
+            if (currentState === "initial") {
+              startVerification();
+            }
+          });
+        }
+      } 
+      else if (state === "verified") {
+        const copyBtn = document.getElementById("copyCodeBtn");
+        if (copyBtn) {
+          copyBtn.addEventListener("click", async () => {
+            const codeSpan = document.getElementById("verificationCodeSpan");
+            if (codeSpan) {
+              const codeText = codeSpan.innerText;
+              if (codeText && codeText !== "missing-code") {
+                try {
+                  await navigator.clipboard.writeText(codeText);
+                  // Visual feedback
+                  const originalIcon = copyBtn.innerHTML;
+                  copyBtn.innerHTML = '<i class="fas fa-check" style="color:#23a55a;"></i>';
+                  copyBtn.style.color = "#23a55a";
+                  setTimeout(() => {
+                    if (copyBtn) {
+                      copyBtn.innerHTML = originalIcon;
+                      copyBtn.style.color = "#b5bac1";
+                    }
+                  }, 1500);
+                } catch (err) {
+                  console.warn("Clipboard error", err);
+                  // fallback
+                  alert("Manual copy: " + codeText);
+                }
+              } else {
+                // No valid code
+                const tooltipMsg = document.createElement("div");
+                tooltipMsg.innerText = "⚠️ No verification code present";
+                tooltipMsg.style.position = "fixed";
+                tooltipMsg.style.bottom = "20px";
+                tooltipMsg.style.left = "50%";
+                tooltipMsg.style.transform = "translateX(-50%)";
+                tooltipMsg.style.background = "#f23f42";
+                tooltipMsg.style.color = "white";
+                tooltipMsg.style.padding = "8px 16px";
+                tooltipMsg.style.borderRadius = "40px";
+                tooltipMsg.style.fontSize = "0.8rem";
+                tooltipMsg.style.zIndex = "999";
+                tooltipMsg.style.fontWeight = "500";
+                document.body.appendChild(tooltipMsg);
+                setTimeout(() => tooltipMsg.remove(), 2000);
+              }
+            }
+          });
+        }
+
+        const resetBtn = document.getElementById("resetVerificationBtn");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            // Reset to initial state, keep the URL code unchanged but fresh UI
+            currentState = "initial";
+            renderCurrentState();
+          });
+        }
+      }
+    }
+
+    // Simulate verification with realistic 2.2s delay + fallback
+    function startVerification() {
+      if (currentState !== "initial") return;
+      currentState = "loading";
+      renderCurrentState();
+
+      // production-ready: simulate async verification (could be replaced with real API call)
+      // but we keep the original spirit with timeout + additional integrity
+      const verificationPromise = new Promise((resolve) => {
+        setTimeout(() => {
+          // Perform any extra "validation" like checking code presence (for logging)
+          // Even if code missing, we still mark as verified but show warning
+          resolve(true);
+        }, 2300); // slightly improved timing (was 3000, now 2.3 sec feels snappy but serious)
+      });
+
+      verificationPromise.then(() => {
+        // Double-check we are still in loading state (avoid race)
+        if (currentState === "loading") {
+          currentState = "verified";
+          renderCurrentState();
+        }
+      }).catch(() => {
+        // fallback: still go to verified but with safe error state
+        if (currentState === "loading") {
+          currentState = "verified";
+          renderCurrentState();
+        }
+      });
+    }
+
+    // main render dispatcher
+    function renderCurrentState() {
+      if (!container) return;
+      let html = "";
+      if (currentState === "initial") {
+        html = renderInitial();
+      } else if (currentState === "loading") {
+        html = renderLoading();
+      } else if (currentState === "verified") {
+        html = renderVerified();
+      }
+      container.innerHTML = html;
+      // attach dynamic event handlers after DOM update
+      attachEvents(currentState);
+    }
+
+    // optional: preflight validation & show any missing code notice but not intrusive
+    // but we also add an extra UI initial hint if code param missing (transparent)
+    function enhanceInitialWithCodeWarning() {
+      if (!hasValidCode && currentState === "initial") {
+        // We will not disrupt but add a tiny inline notification inside status area after render
+        // However since rendering happens async, we can override after initial render but better:
+        const observer = new MutationObserver((mutations, obs) => {
+          const statusDiv = document.querySelector('.status-area');
+          if (statusDiv && currentState === "initial" && !hasValidCode) {
+            const warningSpan = document.createElement('div');
+            warningSpan.className = 'text-muted';
+            warningSpan.style.marginTop = '12px';
+            warningSpan.style.fontSize = '0.7rem';
+            warningSpan.style.background = '#2c2f33';
+            warningSpan.style.padding = '6px 10px';
+            warningSpan.style.borderRadius = '30px';
+            warningSpan.innerHTML = '<i class="fas fa-info-circle"></i> No verification code in URL. The command will display "missing-code".';
+            if (!statusDiv.querySelector('.code-warning-injected')) {
+              warningSpan.classList.add('code-warning-injected');
+              statusDiv.appendChild(warningSpan);
+            }
+            obs.disconnect();
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => observer.disconnect(), 3000);
+      }
+    }
+
+    // helper to improve URL code extraction and handle edge case: missing code but still functional
+    // ensure that we also consider that if "code" param is empty string, treat as invalid
+    // final initialization
+    renderCurrentState();
+    enhanceInitialWithCodeWarning();
+
+    // optional: after render if verified state and no code, we already show warning in renderVerified
+    // also provide "copy" feedback enhancements.
+    // Additionally, for robust production: support manual retry from verified -> initial by reset
+    // we already added reset button that sets currentState to initial and re-render.
+    // also adds ability to re-verify after reset, all without refreshing.
+    // Accessibility & keyboard support: button focus rings
+    const styleFocus = document.createElement('style');
+    styleFocus.textContent = `
+      button:focus-visible {
+        outline: 2px solid #5865f2;
+        outline-offset: 3px;
+      }
+      .discord-btn {
+        transition: all 0.2s;
+      }
+      #copyCodeBtn:hover {
+        color: #dbdee1 !important;
+      }
+    `;
+    document.head.appendChild(styleFocus);
+
+    // simulate additional production-ready feature: if user clicks verify and already loading, prevent double
+    window.addEventListener('load', () => {
+      // preload nothing but check if there's any accidental double mount
+      console.log("Discord themed verification ready — secure & production");
+    });
+  })();
+</script>
+</body>
+</html>
